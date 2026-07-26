@@ -293,17 +293,15 @@ Follow this guide to deploy your production database to **MongoDB Atlas**, your 
 
 ### Step 2: Deploy Backend REST API to Render
 
-1. Push your repository to **GitHub**.
+1. Push your repository changes to **GitHub**.
 2. Log in to [Render.com](https://render.com) and click **New +** -> **Web Service**.
-3. Connect your GitHub repository.
+3. Select your GitHub repository.
 4. Fill in the service configuration:
    - **Name**: `hostel-gatepass-api`
-   - **Root Directory**: `backend`
+   - **Root Directory**: `backend` *(CRITICAL: Make sure to specify `backend` so Render installs dependencies from `backend/requirements.txt`)*
    - **Environment**: `Python 3`
-   - **Region**: Choose closest to your users (e.g. Singapore / Frankfurt / Oregon)
-   - **Branch**: `main` (or `master`)
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
+   - **Start Command**: `gunicorn app:app` *(or `python -m gunicorn app:app`)*
 5. Configure Environment Variables under **Environment**:
    | Key | Value |
    | :--- | :--- |
@@ -311,9 +309,11 @@ Follow this guide to deploy your production database to **MongoDB Atlas**, your 
    | `JWT_SECRET` | `your_production_jwt_secret_key_here` |
    | `SECRET_KEY` | `your_production_flask_secret_key_here` |
    | `ENVIRONMENT` | `production` |
-6. Click **Create Web Service**.
-7. Once deployed, copy your Render public API URL (e.g. `https://hostel-gatepass-api.onrender.com`).
-   *Test it by opening: `https://hostel-gatepass-api.onrender.com/api/admin/stats` in your browser.*
+6. Click **Create Web Service** (or **Manual Deploy** -> **Clear build cache & deploy**).
+
+> 💡 **Troubleshooting `gunicorn: command not found` on Render**:
+> - Ensure **Root Directory** is set to `backend` in your Render Service Settings (`Settings` -> `Root Directory` = `backend`).
+> - Alternatively, set **Build Command** to: `pip install -r backend/requirements.txt` and **Start Command** to: `gunicorn --chdir backend app:app`.
 
 ---
 

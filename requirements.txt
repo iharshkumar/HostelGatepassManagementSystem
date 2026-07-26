@@ -1,0 +1,2 @@
+# Root requirements fallback for Render / Cloud deployment
+-r backend/requirements.txt
