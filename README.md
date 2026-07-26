@@ -269,6 +269,73 @@ You can register any account role directly on the **Register** tab of the Sign I
 
 ---
 
+## 🌐 Complete Deployment Guide
+
+Follow this guide to deploy your production database to **MongoDB Atlas**, your backend REST API to **Render**, and your frontend single-page application to **Vercel**.
+
+---
+
+### Step 1: Database Setup (MongoDB Atlas)
+
+1. Sign up/Log in at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a **Free Shared Cluster**.
+3. Create a Database User:
+   - Go to **Database Access** -> **Add New Database User**.
+   - Set username & password (e.g. `admin_user` / `securepassword123`).
+4. Network Access:
+   - Go to **Network Access** -> **Add IP Address**.
+   - Select **Allow Access from Anywhere** (`0.0.0.0/0`) so Render can connect to your database.
+5. Get Connection String:
+   - Click **Connect** on your cluster -> **Drivers**.
+   - Copy connection string: `mongodb+srv://admin_user:<password>@cluster0.mongodb.net/hostel_gatepass?retryWrites=true&w=majority`
+
+---
+
+### Step 2: Deploy Backend REST API to Render
+
+1. Push your repository to **GitHub**.
+2. Log in to [Render.com](https://render.com) and click **New +** -> **Web Service**.
+3. Connect your GitHub repository.
+4. Fill in the service configuration:
+   - **Name**: `hostel-gatepass-api`
+   - **Root Directory**: `backend`
+   - **Environment**: `Python 3`
+   - **Region**: Choose closest to your users (e.g. Singapore / Frankfurt / Oregon)
+   - **Branch**: `main` (or `master`)
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app`
+5. Configure Environment Variables under **Environment**:
+   | Key | Value |
+   | :--- | :--- |
+   | `MONGO_URI` | `mongodb+srv://admin_user:password@cluster0.mongodb.net/hostel_gatepass?retryWrites=true&w=majority` |
+   | `JWT_SECRET` | `your_production_jwt_secret_key_here` |
+   | `SECRET_KEY` | `your_production_flask_secret_key_here` |
+   | `ENVIRONMENT` | `production` |
+6. Click **Create Web Service**.
+7. Once deployed, copy your Render public API URL (e.g. `https://hostel-gatepass-api.onrender.com`).
+   *Test it by opening: `https://hostel-gatepass-api.onrender.com/api/admin/stats` in your browser.*
+
+---
+
+### Step 3: Deploy Frontend SPA to Vercel
+
+1. Log in to [Vercel.com](https://vercel.com) and click **Add New** -> **Project**.
+2. Import your GitHub repository.
+3. Configure project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click *Edit* and select `frontend`
+   - **Build Command**: `npm run build` (or leave default `vite build`)
+   - **Output Directory**: `dist`
+4. Expand **Environment Variables** and add:
+   | Key | Value |
+   | :--- | :--- |
+   | `VITE_API_URL` | `https://hostel-gatepass-api.onrender.com/api` |
+   *(Replace with your actual Render API URL followed by `/api`)*
+5. Click **Deploy**.
+6. Vercel will build and deploy your frontend. Once complete, your site will be live at `https://your-project.vercel.app`.
+
+---
+
 ## 📄 License
 
 This project is open-source and available under the [MIT License](LICENSE).
