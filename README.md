@@ -1,50 +1,52 @@
 # 🎓 Hostel Gatepass Management System
 
-A production-ready, full-stack digital solution for hostel gatepass management built with **Flask**, **PyMongo (MongoDB Atlas)**, **JWT Authentication**, **Role-Based Access Control (RBAC)**, and a **React + Vite** Single Page Application.
+A production-ready, full-stack digital web application for hostel gatepass management built with **Flask**, **PyMongo (MongoDB)**, **JWT Authentication**, **Role-Based Access Control (RBAC)**, and a modern **React + Vite** Single Page Application.
 
 ---
 
-## 🌟 Features
+## 🌟 Overview & Key Features
 
-### 🔐 Authentication & Authorization
-- **Role-Based Access Control (RBAC)**: Distinct permissions for `Student`, `Warden`, and `Admin`.
-- **JWT Authentication**: Token-based authentication with Bcrypt password hashing.
-- **Session Security**: Security headers (`X-Frame-Options`, `X-XSS-Protection`, `HSTS`, `NOSNIFF`), CORS control, and input validation.
+The Hostel Gatepass Management System automates the complete lifecycle of hostel student gatepasses—from application and warden approval to security desk verification, real-time check-out, and check-in tracking.
 
-### 📋 Student Gatepass Portal
-- **Apply for Gatepass**: Real-time date validation (return date must succeed leave date), destination, and reason.
-- **Gatepass Tracking**: Live status tracking (`Pending`, `Approved`, `Rejected`, `Cancelled`).
-- **Cancellation**: Self-service cancellation of pending requests.
-- **Search & Filters**: Instant search by destination or reason.
-
-### 🛡️ Warden Approval Dashboard
-- **Review Requests**: View student details, room numbers, leave duration, and reasons.
-- **Approve/Reject**: Instant decision actions with optional warden remarks/instructions.
-- **Filter**: Filter by status (`Pending`, `Approved`, `Rejected`).
-
-### 👑 Admin Control Center
-- **System Metrics**: Total students, wardens, pending, approved, and rejected gatepasses.
-- **User Management**: View user accounts, change user roles dynamically, and remove users.
-- **Hostel Management**: Add hostels, assign wardens, and set room capacity.
+### 🔐 Multi-Role Access Control (RBAC)
+- 🎓 **Student Portal**: Apply for gatepasses with date validation, track request status (`Pending`, `Approved`, `Rejected`, `Cancelled`, `Checked Out`, `Checked In`), and cancel pending requests.
+- 🛡️ **Warden Dashboard**: Review pending requests, inspect student room details and leave reasons, and approve or reject passes with remarks.
+- 👮 **Security Guard Desk**: Search and verify approved student passes, perform one-click **Check-Out** when students leave, and **Check-In** when students return with real-time audit logging.
+- 👑 **Admin Control Center**: Monitor system-wide statistics, manage user accounts, assign roles dynamically, and configure hostel capacities.
 
 ---
 
-## 📐 Architecture Diagram
+## 📐 System Architecture
 
 ```mermaid
 graph TD
-    Client["💻 React SPA (Vite + Axios)"]
-    API["⚡ Flask REST API (/api)"]
-    Auth["🔐 JWT & RBAC Middleware"]
-    Controllers["🎮 Controller Layer"]
-    Services["⚙️ Business Logic Services"]
-    DB[("🍃 MongoDB Atlas")]
-
-    Client -->|HTTP / REST + Bearer Token| API
-    API --> Auth
-    Auth --> Controllers
+    User["💻 User (Browser / Mobile)"]
+    
+    subgraph Frontend ["🎨 Frontend (React + Vite)"]
+        SPA["React SPA"]
+        AuthContext["Auth Context & Router"]
+        AxiosClient["Axios Interceptor (JWT)"]
+    end
+    
+    subgraph Backend ["⚡ Backend (Flask REST API)"]
+        API["Flask API Blueprints (/api)"]
+        AuthMW["JWT & RBAC Middleware"]
+        Controllers["Controller Layer"]
+        Services["Business Logic Services"]
+    end
+    
+    subgraph Database ["🍃 Data Persistence"]
+        MongoDB[("MongoDB Atlas / Local Mongo / Mock")]
+    end
+    
+    User --> SPA
+    SPA --> AuthContext
+    AuthContext --> AxiosClient
+    AxiosClient -->|HTTP REST + Bearer Token| API
+    API --> AuthMW
+    AuthMW --> Controllers
     Controllers --> Services
-    Services --> DB
+    Services --> MongoDB
 ```
 
 ---
@@ -53,53 +55,54 @@ graph TD
 
 ```
 HostelGatepassManagementSystem/
-├── backend/
-│   ├── app.py                      # Application entry point
-│   ├── requirements.txt            # Backend dependencies
-│   ├── .env.example                # Environment configuration template
-│   ├── README.md                   # Backend documentation
-│   ├── config/                     # Database & settings config
-│   │   ├── database.py
-│   │   └── settings.py
-│   ├── controllers/                # Request & response controllers
+├── backend/                        # Flask REST API Server
+│   ├── app.py                      # Application entry point & Blueprint registration
+│   ├── requirements.txt            # Python dependencies (Flask, PyMongo, PyJWT, bcrypt, pytest)
+│   ├── .env.example                # Backend environment template
+│   ├── config/                     # Database & settings configuration
+│   │   ├── database.py             # PyMongo client & fallback handler
+│   │   └── settings.py             # Environment configuration manager
+│   ├── controllers/                # Request validation & HTTP response handling
 │   │   ├── admin_controller.py
 │   │   ├── auth_controller.py
 │   │   ├── gatepass_controller.py
 │   │   └── student_controller.py
-│   ├── middleware/                 # Auth & role security decorators
-│   │   ├── auth.py
-│   │   ├── error_handler.py
-│   │   └── roles.py
-│   ├── models/                     # Mongo schema data helpers
+│   ├── middleware/                 # Security decorators
+│   │   ├── auth.py                 # JWT Token validation decorator
+│   │   ├── error_handler.py        # Global error handlers
+│   │   └── roles.py                # Role-Based Access Control (RBAC) decorator
+│   ├── models/                     # Mongo schema builders & data constants
 │   │   ├── gatepass.py
 │   │   ├── hostel.py
 │   │   ├── student.py
 │   │   └── user.py
-│   ├── routes/                     # Flask API Blueprints
-│   │   ├── admin_routes.py
-│   │   ├── auth_routes.py
-│   │   ├── gatepass_routes.py
-│   │   └── student_routes.py
-│   ├── services/                   # Core business logic
+│   ├── routes/                     # REST API Blueprints
+│   │   ├── admin_routes.py         # Admin management endpoints
+│   │   ├── auth_routes.py          # Register, Login, Me endpoints
+│   │   ├── gatepass_routes.py      # Apply, Approve, Reject, Check-Out, Check-In
+│   │   └── student_routes.py       # Student profile & history endpoints
+│   ├── services/                   # Core business logic layer
 │   │   ├── auth_service.py
 │   │   └── gatepass_service.py
-│   ├── utils/                      # Response, validation & helper utils
-│   │   ├── helpers.py
-│   │   ├── response.py
-│   │   └── validators.py
-│   └── tests/                      # Pytest unit & integration tests
+│   ├── utils/                      # Helper modules
+│   │   ├── helpers.py              # JWT generation, password hashing, document serialization
+│   │   ├── response.py             # Standardized API response formatters
+│   │   └── validators.py           # Input payload validation functions
+│   └── tests/                      # Pytest unit & integration test suite
+│       ├── conftest.py             # Pytest fixtures & database teardown
 │       ├── test_admin.py
 │       ├── test_auth.py
 │       ├── test_gatepass.py
+│       ├── test_security.py
 │       └── test_student.py
 │
-└── frontend/
+└── frontend/                       # React SPA (Vite)
     ├── package.json                # Frontend dependencies
-    ├── vite.config.js              # Vite server & proxy configuration
-    ├── .env.example                # Frontend environment template
+    ├── vite.config.js              # Vite server & dev proxy config
+    ├── index.html                  # HTML entry point
     └── src/
         ├── api/
-        │   └── axiosClient.js      # Centralized Axios with JWT interceptors
+        │   └── axiosClient.js      # Axios instance with automatic JWT Authorization header
         ├── components/             # Reusable UI components
         │   ├── GatepassCard.jsx
         │   ├── Navbar.jsx
@@ -107,217 +110,165 @@ HostelGatepassManagementSystem/
         │   ├── StatCard.jsx
         │   └── Toast.jsx
         ├── context/
-        │   └── AuthContext.jsx     # Global JWT Auth State
-        ├── pages/                  # Page views
-        │   ├── AdminDashboard.jsx
-        │   ├── Login.jsx
-        │   ├── NotFound.jsx
-        │   ├── Profile.jsx
-        │   ├── StudentDashboard.jsx
-        │   └── WardenDashboard.jsx
-        ├── App.jsx
-        ├── index.css
-        └── main.jsx
+        │   └── AuthContext.jsx     # Global Authentication State
+        ├── pages/                  # Application views
+        │   ├── AdminDashboard.jsx  # Admin Metrics & User Role Manager
+        │   ├── Login.jsx           # Sign In & Registration Portal
+        │   ├── NotFound.jsx        # 404 Route Fallback
+        │   ├── Profile.jsx         # User Profile & Password Change
+        │   ├── SecurityDashboard.jsx # Security Guard Gate Check-In / Check-Out
+        │   ├── StudentDashboard.jsx  # Student Application & History View
+        │   └── WardenDashboard.jsx # Warden Approval & Rejection Console
+        ├── App.jsx                 # Route definitions & Dashboard redirect logic
+        ├── main.jsx                # React DOM render entry
+        └── index.css               # Modern Glassmorphism CSS Design System
 ```
 
 ---
 
-## 🛠️ Installation & Setup
+## 🚀 Quick Start & Setup Guide for New Users
+
+Follow these steps to set up and run the application on your local machine.
 
 ### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- MongoDB Atlas cluster or local MongoDB instance
+- **Python** (version 3.10 or higher)
+- **Node.js** (version 18 or higher) & **npm**
+- **MongoDB** (MongoDB Atlas cloud URI OR local MongoDB at `mongodb://127.0.0.1:27017/hostel_gatepass`). *Note: An in-memory database fallback is automatically initialized if no external MongoDB instance is running.*
 
-### 1. Backend Setup
+---
 
-```bash
-cd backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Create .env from template
-cp .env.example .env
-
-# Edit .env and supply your MongoDB Atlas URI
-# MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/hostel_gatepass
-
-# Run Backend API (Default: http://localhost:5000)
-python app.py
-```
-
-### 2. Run Backend Tests
+### Step 1: Clone the Repository
 
 ```bash
-python -m pytest backend/tests
-```
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-
-# Install Node dependencies
-npm install
-
-# Create .env from template
-cp .env.example .env
-
-# Start Development Server (Default: http://localhost:3000)
-npm run dev
+git clone https://github.com/iharshkumar/HostelGatepassManagementSystem.git
+cd HostelGatepassManagementSystem
 ```
 
 ---
 
-## 🔐 Environment Variables
+### Step 2: Set Up & Run the Backend API
+
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+
+2. Create a virtual environment (optional but recommended):
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
+
+3. Install required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Create environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Optional)* Open `.env` and set your custom `MONGO_URI` or `JWT_SECRET`.
+
+5. Start the Flask Backend Server:
+   ```bash
+   python app.py
+   ```
+   The API server will run at: `http://localhost:5000`
+
+---
+
+### Step 3: Run Backend Tests (Optional)
+
+In the `backend` directory, run pytest:
+```bash
+python -m pytest
+```
+
+---
+
+### Step 4: Set Up & Run the Frontend Application
+
+1. Open a new terminal tab/window and navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Start the Vite Development Server:
+   ```bash
+   npm run dev
+   ```
+   Open your browser and navigate to: `http://localhost:3000` (or `http://localhost:5173`)
+
+---
+
+## 🔑 User Roles & Credentials Quick Reference
+
+You can register any account role directly on the **Register** tab of the Sign In page:
+
+| Role | Available Features |
+| :--- | :--- |
+| **Student** | Apply for gatepass, view request history, cancel pending requests |
+| **Security Guard** | View approved passes, perform Check-Out (exit) and Check-In (return), search student gatepasses |
+| **Warden** | Review student applications, approve/reject gatepasses with custom remarks |
+| **Admin** | Access metrics, manage all user accounts, assign user roles dynamically |
+
+---
+
+## ⚙️ Environment Variables Reference
 
 ### Backend (`backend/.env`)
-| Variable | Default Value | Description |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
 | `PORT` | `5000` | Port for Flask API server |
-| `MONGO_URI` | `mongodb://localhost:27017/hostel_gatepass` | MongoDB Atlas Connection String |
-| `JWT_SECRET` | `secret` | Secret key used to sign JWT tokens |
+| `MONGO_URI` | `mongodb://127.0.0.1:27017/hostel_gatepass` | MongoDB connection string |
+| `JWT_SECRET` | `secret` | Secret key used to sign JWT authentication tokens |
 | `SECRET_KEY` | `secret` | Flask session secret key |
-| `JWT_EXPIRE_DAYS` | `7` | Token expiration duration |
-| `ENVIRONMENT` | `development` | Environment mode (`development` / `production`) |
+| `JWT_EXPIRE_DAYS` | `7` | Duration (in days) before JWT tokens expire |
 
 ### Frontend (`frontend/.env`)
-| Variable | Default Value | Description |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `VITE_API_URL` | `http://localhost:5000/api` | Base URL for backend REST API |
+| `VITE_API_URL` | `http://localhost:5000/api` | Base REST API URL for frontend Axios calls |
 
 ---
 
-## 📑 API Endpoint Documentation
+## 📑 API Route Summary
 
-All response payloads adhere to the standard envelope:
-- **Success Response**: `{"success": true, "message": "...", "data": {...}}`
-- **Error Response**: `{"success": false, "message": "...", "errors": [...]}`
+### Authentication (`/api/auth`)
+- `POST /api/auth/register` — Register a new account (`Student`, `Security Guard`, `Warden`, `Admin`).
+- `POST /api/auth/login` — Sign in and receive a JWT token.
+- `GET /api/auth/me` — Fetch current user profile.
 
-### Authentication Endpoints (`/api/auth`)
+### Gatepass Management (`/api/gatepass`)
+- `POST /api/gatepass/apply` — Apply for gatepass (Student).
+- `GET /api/gatepass` — List gatepasses with optional status/search filters.
+- `PUT /api/gatepass/<id>/approve` — Approve gatepass request (Warden / Admin).
+- `PUT /api/gatepass/<id>/reject` — Reject gatepass request (Warden / Admin).
+- `PUT /api/gatepass/<id>/check-out` — Mark student check-out / exit (Security Guard / Admin).
+- `PUT /api/gatepass/<id>/check-in` — Mark student check-in / return (Security Guard / Admin).
+- `PUT /api/gatepass/<id>/cancel` — Cancel pending gatepass (Student).
 
-#### `POST /api/auth/register`
-- **Auth**: None
-- **Payload**:
-  ```json
-  {
-    "fullName": "Arjun Kumar",
-    "email": "arjun@student.edu",
-    "password": "password123",
-    "role": "Student",
-    "hostel": "Block A",
-    "roomNumber": "101",
-    "phone": "9876543210"
-  }
-  ```
-- **Response (201 Created)**:
-  ```json
-  {
-    "success": true,
-    "message": "Registration successful",
-    "data": {
-      "user": { "id": "669...", "fullName": "Arjun Kumar", "email": "arjun@student.edu", "role": "Student" },
-      "token": "eyJhbG..."
-    }
-  }
-  ```
-
-#### `POST /api/auth/login`
-- **Auth**: None
-- **Payload**:
-  ```json
-  {
-    "email": "arjun@student.edu",
-    "password": "password123"
-  }
-  ```
-
-#### `GET /api/auth/me`
-- **Auth**: Bearer Token
-- **Response (200 OK)**: Current user document without password hash.
+### Admin Control (`/api/admin`)
+- `GET /api/admin/stats` — System overview statistics.
+- `GET /api/admin/users` — List all registered user accounts.
+- `PUT /api/admin/users/<id>/role` — Update role of a user.
 
 ---
 
-### Gatepass Endpoints (`/api/gatepass`)
+## 📄 License
 
-#### `POST /api/gatepass/apply`
-- **Auth**: Bearer Token (`Student` role required)
-- **Payload**:
-  ```json
-  {
-    "destination": "New Delhi",
-    "reason": "Family Visit",
-    "leaveDate": "2026-08-01T10:00:00Z",
-    "returnDate": "2026-08-05T18:00:00Z"
-  }
-  ```
-
-#### `PUT /api/gatepass/<id>/approve`
-- **Auth**: Bearer Token (`Warden` or `Admin` role required)
-- **Payload**:
-  ```json
-  {
-    "remarks": "Approved. Return before 8 PM."
-  }
-  ```
-
-#### `PUT /api/gatepass/<id>/reject`
-- **Auth**: Bearer Token (`Warden` or `Admin` role required)
-
-#### `PUT /api/gatepass/<id>/cancel`
-- **Auth**: Bearer Token (`Student` role required)
-
----
-
-### Admin Endpoints (`/api/admin`)
-
-#### `GET /api/admin/stats`
-- **Auth**: Bearer Token (`Admin` or `Warden`)
-
-#### `GET /api/admin/users`
-- **Auth**: Bearer Token (`Admin`)
-
-#### `PUT /api/admin/users/<user_id>/role`
-- **Auth**: Bearer Token (`Admin`)
-- **Payload**: `{"role": "Warden"}`
-
----
-
-## 🚀 Deployment Guide
-
-### 1. MongoDB Atlas Setup
-1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2. Create a Database User with read/write credentials.
-3. Allow access from anywhere (`0.0.0.0/0`) in Network Access settings.
-4. Obtain connection string and paste into `MONGO_URI`.
-
-### 2. Backend Deployment (Render / Railway)
-1. Push repository to GitHub.
-2. Create a Web Service on Render / Railway pointing to `backend/`.
-3. Set Build Command: `pip install -r requirements.txt`
-4. Set Start Command: `gunicorn app:app`
-5. Configure Environment Variables (`MONGO_URI`, `JWT_SECRET`, `SECRET_KEY`, `ENVIRONMENT=production`).
-
-### 3. Frontend Deployment (Vercel)
-1. Import repository in Vercel.
-2. Set Root Directory to `frontend/`.
-3. Set Build Command: `npm run build`
-4. Set Output Directory: `dist`
-5. Configure Environment Variable: `VITE_API_URL=https://your-backend-api.onrender.com/api`
-
----
-
-## ❓ Troubleshooting & Common Errors
-
-1. **`MONGO_URI` connection timeout**:
-   - Ensure your IP address is whitelisted on MongoDB Atlas Network Access.
-   - Verify connection string credentials.
-
-2. **CORS issues during local testing**:
-   - Ensure backend is running on `http://localhost:5000` and frontend on `http://localhost:3000`.
-   - Verify Vite proxy settings in `vite.config.js`.
-
-3. **`401 Unauthorized` token error**:
-   - Verify that your token has not expired (`JWT_EXPIRE_DAYS=7`).
-   - Check that the `Authorization: Bearer <token>` header is sent with API calls.
+This project is open-source and available under the [MIT License](LICENSE).
