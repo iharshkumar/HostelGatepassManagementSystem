@@ -298,10 +298,9 @@ Follow this guide to deploy your production database to **MongoDB Atlas**, your 
 3. Select your GitHub repository.
 4. Fill in the service configuration:
    - **Name**: `hostel-gatepass-api`
-   - **Root Directory**: `backend` *(CRITICAL: Make sure to specify `backend` so Render installs dependencies from `backend/requirements.txt`)*
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app` *(or `python -m gunicorn app:app`)*
+   - **Start Command**: `gunicorn wsgi:app` *(or if Root Directory is `backend`, use `gunicorn app:app`)*
 5. Configure Environment Variables under **Environment**:
    | Key | Value |
    | :--- | :--- |
@@ -311,9 +310,10 @@ Follow this guide to deploy your production database to **MongoDB Atlas**, your 
    | `ENVIRONMENT` | `production` |
 6. Click **Create Web Service** (or **Manual Deploy** -> **Clear build cache & deploy**).
 
-> 💡 **Troubleshooting `gunicorn: command not found` on Render**:
-> - Ensure **Root Directory** is set to `backend` in your Render Service Settings (`Settings` -> `Root Directory` = `backend`).
-> - Alternatively, set **Build Command** to: `pip install -r backend/requirements.txt` and **Start Command** to: `gunicorn --chdir backend app:app`.
+> 💡 **Troubleshooting Render Commands**:
+> - If **Root Directory** is empty (root level): use **Start Command**: `gunicorn wsgi:app` or `gunicorn --chdir backend app:app`.
+> - If **Root Directory** is set to `backend`: use **Start Command**: `gunicorn app:app`.
+> - Do NOT use `gunicorn backend app:app` (missing `--chdir` flag).
 
 ---
 
