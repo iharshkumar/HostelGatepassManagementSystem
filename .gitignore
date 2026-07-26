@@ -19,13 +19,23 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
 
-# Flask
+# Node / JS
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+.npm/
+
+# Flask & Web
 instance/
 .webassets-cache
 
-# Environment variables
+# Environment variables & Local config
 .env
+.env.local
+.env.*.local
 .venv
 env/
 venv/
@@ -33,14 +43,18 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
-# OS
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -51,7 +65,11 @@ Thumbs.db
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Database (for local development only)
-# Note: SQLite doesn't work on Vercel, we'll need to use a cloud database
+# Database & Temporary local files
 gatepass.db
+*.sqlite
+*.sqlite3
